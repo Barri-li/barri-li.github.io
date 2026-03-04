@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barry Li</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <style>
+        /* ══════════════════════════════════════
+           TOKENS
+        ══════════════════════════════════════ */
+        :root {
+            --bg:           #080807;
+            --bg2:          #0f0f0d;
+            --card:         rgba(255,255,255,0.04);
+            --card-hover:   rgba(255,255,255,0.07);
+            --border:       rgba(255,255,255,0.08);
+            --border-gold:  rgba(201,168,76,0.4);
+            --text:         #f0ede8;
+            --text-dim:     #56534c;
+            --text-mid:     #9e9b94;
+            --gold:         #c9a84c;
+            --gold-dim:     rgba(201,168,76,0.09);
+        }
+
+        /* ══════════════════════════════════════
+           RESET & BASE
+        ══════════════════════════════════════ */
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            overflow-x: hidden;
+        }
+
+        /* grain */
+        body::before {
+            content:'';
+            position:fixed; inset:0;
+            background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events:none; z-index:9999;
+        }
+
+        /* ambient orbs */
+        .orb {
+            position:fixed; border-radius:50%;
+            filter:blur(130px); pointer-events:none; z-index:0;
+        }
+        .orb-1 {
+            width:600px; height:600px;
+            background:radial-gradient(circle, rgba(201,168,76,0.055) 0%, transparent 70%);
+            top:-150px; left:-150px;
+        }
+        .orb-2 {
+            width:500px; height:500px;
+            background:radial-gradient(circle, rgba(201,168,76,0.035) 0%, transparent 70%);
+            bottom:-100px; right:-100px;
+        }
+
+        /* ══════════════════════════════════════
+           PAGE SYSTEM — each .page is full-height
+        ══════════════════════════════════════ */
+        .page {
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+            display: none;
+        }
+        .page.active { display: flex; flex-direction: column; }
+
+        /* ══════════════════════════════════════
+           PAGE 0 — HERO
+        ══════════════════════════════════════ */
+        #page-home {
+            scroll-snap-align: start;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0;
+        }
+
+        .hero-hi {
+            font-family: 'DM Mono', monospace;
+            font-size: clamp(0.6rem, 1.5vw, 0.72rem);
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 1.2rem;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.3s forwards;
+        }
+
+        .hero-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(4rem, 12vw, 9rem);
+            font-weight: 300;
+            line-height: 0.92;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            opacity: 0;
+            animation: fadeUp 0.8s ease 0.5s forwards;
+        }
+        .hero-name em {
+            font-style: italic;
+            color: var(--gold);
+        }
+
+        .hero-role {
+            margin-top: 1.8rem;
+            font-family: 'DM Mono', monospace;
+            font-size: clamp(0.58rem, 1.2vw, 0.68rem);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.8s forwards;
+        }
+
+        /* scroll cue */
+        .scroll-cue {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            opacity: 0;
+            animation: fadeIn 1s ease 1.3s forwards;
+            z-index: 10;
+        }
+        .scroll-cue-line {
+            width: 1px;
+            height: 40px;
+            background: linear-gradient(to bottom, transparent, var(--text-dim));
+        }
+        .scroll-cue-arrow {
+            width: 28px; height: 28px;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            animation: bounce 2.2s ease-in-out 1.5s infinite;
+            transition: border-color 0.3s, color 0.3s;
+        }
+        .scroll-cue:hover .scroll-cue-arrow {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* ══════════════════════════════════════
+           PAGE 1 — CARD NAV HUB
+        ══════════════════════════════════════ */
+        #page-hub {
+            flex-direction: column;
+            justify-content: space-between;
+            padding: clamp(2rem,4vh,3rem) clamp(1.5rem,5vw,4rem);
+        }
+
+        /* hub header */
+        .hub-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0;
+            animation: fadeUp 0.6s ease 0.1s forwards;
+        }
+        .hub-wordmark {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            font-weight: 300;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .hub-wordmark em { font-style: italic; color: var(--gold); }
+        .hub-wordmark:hover { color: var(--text-mid); }
+
+        .hub-location {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+
+        /* cards grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            flex: 1;
+            margin: clamp(1.5rem,3vh,2.5rem) 0;
+        }
+
+        /* special layout: first card spans 2 rows height visually if desired */
+        .card-nav {
+            position: relative;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.8rem 2rem 1.6rem;
+            text-decoration: none;
+            color: var(--text);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            cursor: pointer;
+            min-height: 160px;
+            transition: border-color 0.35s, background 0.35s, transform 0.35s cubic-bezier(0.25,1,0.5,1);
+            opacity: 0;
+        }
+        .card-nav:nth-child(1) { animation: cardIn 0.55s ease 0.15s forwards; }
+        .card-nav:nth-child(2) { animation: cardIn 0.55s ease 0.25s forwards; }
+        .card-nav:nth-child(3) { animation: cardIn 0.55s ease 0.35s forwards; }
+        .card-nav:nth-child(4) { animation: cardIn 0.55s ease 0.45s forwards; }
+        .card-nav:nth-child(5) { animation: cardIn 0.55s ease 0.55s forwards; }
+
+        .card-nav::before {
+            content:'';
+            position:absolute; inset:0;
+            background: radial-gradient(ellipse at 15% 85%, var(--gold-dim), transparent 65%);
+            opacity:0;
+            transition: opacity 0.4s;
+            border-radius: inherit;
+        }
+        .card-nav:hover { border-color: var(--border-gold); background: var(--card-hover); transform: translateY(-2px) scale(1.005); }
+        .card-nav:hover::before { opacity:1; }
+
+        /* gold bottom line on hover */
+        .card-nav::after {
+            content:'';
+            position:absolute;
+            bottom:0; left:1.5rem; right:1.5rem;
+            height:1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            opacity:0; transition: opacity 0.4s;
+        }
+        .card-nav:hover::after { opacity:0.5; }
+
+        .card-num {
+            position:absolute;
+            top:1.4rem; right:1.6rem;
+            font-family:'DM Mono', monospace;
+            font-size:0.55rem;
+            letter-spacing:0.14em;
+            color: var(--text-dim);
+            transition: color 0.3s;
+        }
+        .card-nav:hover .card-num { color: var(--gold); }
+
+        .card-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.4rem, 2.2vw, 1.7rem);
+            font-weight: 300;
+            letter-spacing: 0.01em;
+            position: relative; z-index:1;
+        }
+
+        .card-desc {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.58rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+            position: relative; z-index:1;
+            transition: color 0.3s;
+        }
+        .card-nav:hover .card-desc { color: var(--text-mid); }
+
+        .card-arrow {
+            position:absolute;
+            bottom:1.6rem; right:1.8rem;
+            color: var(--gold);
+            font-size:0.8rem;
+            opacity:0;
+            transform: translate(-3px, 3px);
+            transition: opacity 0.3s, transform 0.3s;
+            z-index:1;
+        }
+        .card-nav:hover .card-arrow { opacity:1; transform:translate(0,0); }
+
+        /* hub footer */
+        .hub-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0;
+            animation: fadeUp 0.6s ease 0.7s forwards;
+        }
+
+        .footer-status {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.58rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+        .status-dot {
+            width:5px; height:5px;
+            border-radius:50%;
+            background: var(--gold);
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        .social-links {
+            display:flex; align-items:center; gap:1.6rem;
+        }
+        .icon-link {
+            color: var(--text-dim);
+            text-decoration: none;
+            display:flex; align-items:center; justify-content:center;
+            transition: color 0.3s, transform 0.3s;
+        }
+        .icon-link:hover { color: var(--gold); transform:translateY(-2px); }
+        .icon-link svg {
+            width:18px; height:18px;
+            stroke:currentColor; fill:none;
+            stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round;
+        }
+
+        /* ══════════════════════════════════════
+           SUBPAGES — modal-style overlay
+        ══════════════════════════════════════ */
+        .subpage {
+            position:fixed; inset:0;
+            background: var(--bg);
+            z-index:100;
+            overflow-y:auto;
+            display:none;
+            flex-direction:column;
+        }
+        .subpage.open { display:flex; }
+
+        /* subpage nav bar */
+        .sub-nav {
+            position:sticky; top:0;
+            background: rgba(8,8,7,0.9);
+            backdrop-filter: blur(20px);
+            border-bottom:1px solid var(--border);
+            padding:1.2rem clamp(1.5rem,5vw,4rem);
+            display:flex; justify-content:space-between; align-items:center;
+            z-index:10;
+        }
+        .sub-nav-back {
+            display:flex; align-items:center; gap:0.6rem;
+            font-family:'DM Mono', monospace;
+            font-size:0.62rem;
+            letter-spacing:0.12em;
+            text-transform:uppercase;
+            color: var(--text-dim);
+            cursor:pointer;
+            transition: color 0.3s;
+            background:none; border:none;
+        }
+        .sub-nav-back:hover { color: var(--gold); }
+        .sub-nav-title {
+            font-family:'DM Mono', monospace;
+            font-size:0.6rem;
+            letter-spacing:0.18em;
+            text-transform:uppercase;
+            color: var(--text-dim);
+        }
+
+        /* subpage body */
+        .sub-body {
+            padding: clamp(3rem,6vh,5rem) clamp(1.5rem,5vw,4rem);
+            max-width:900px;
+            margin:0 auto;
+            width:100%;
+        }
+
+        /* subpage section heading */
+        .sub-eyebrow {
+            font-family:'DM Mono', monospace;
+            font-size:0.62rem;
+            letter-spacing:0.2em;
+            text-transform:uppercase;
+            color: var(--gold);
+            margin-bottom:1rem;
+            display:flex; align-items:center; gap:0.8rem;
+        }
+        .sub-eyebrow::after {
+            content:'';
+            height:1px; width:40px;
+            background: var(--gold); opacity:0.35;
+        }
+
+        .sub-headline {
+            font-family:'Cormorant Garamond', serif;
+            font-size: clamp(2.2rem,5vw,4rem);
+            font-weight:300;
+            line-height:1.05;
+            letter-spacing:-0.01em;
+            margin-bottom:3rem;
+        }
+        .sub-headline em { font-style:italic; color:var(--gold); }
+
+        /* ── ABOUT subpage ── */
+        .about-intro {
+            font-size:1rem;
+            color: var(--text-mid);
+            line-height:1.85;
+            max-width:650px;
+            margin-bottom:3rem;
+        }
+
+        .stats-row {
+            display:grid;
+            grid-template-columns:repeat(4,1fr);
+            gap:1px;
+            border:1px solid var(--border);
+            margin-bottom:3.5rem;
+        }
+        .stat-box {
+            padding:1.5rem 1.2rem;
+            background: var(--card);
+            text-align:center;
+            border-right:1px solid var(--border);
+        }
+        .stat-box:last-child { border-right:none; }
+        .stat-n {
+            font-family:'Cormorant Garamond', serif;
+            font-size:2.4rem; font-weight:300;
+            color:var(--gold); line-height:1;
+            margin-bottom:0.4rem;
+        }
+        .stat-l {
+            font-family:'DM Mono', monospace;
+            font-size:0.58rem; letter-spacing:0.1em;
+            text-transform:uppercase; color:var(--text-dim);
+        }
+
+        .skills-cols {
+            display:grid; grid-template-columns:1fr 1fr; gap:1rem;
+            margin-bottom:3rem;
+        }
+        .skill-row {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:0.9rem 1.1rem;
+            border:1px solid var(--border); background:var(--card);
+            font-size:0.83rem; color:var(--text-mid);
+            transition: border-color 0.3s, color 0.3s;
+        }
+        .skill-row:hover { border-color:rgba(201,168,76,0.3); color:var(--text); }
+        .skill-tag {
+            font-family:'DM Mono', monospace;
+            font-size:0.58rem; letter-spacing:0.1em;
+            color:var(--gold);
+        }
+
+        /* ── EXPERIENCE subpage ── */
+        .exp-entry {
+            display:grid;
+            grid-template-columns:190px 1fr;
+            gap:2.5rem;
+            padding:2.5rem 0;
+            border-bottom:1px solid var(--border);
+        }
+        .exp-entry:first-child { border-top:1px solid var(--border); }
+
+        .exp-left {}
+        .exp-period {
+            font-family:'DM Mono', monospace;
+            font-size:0.62rem; letter-spacing:0.1em;
+            color:var(--gold); margin-bottom:0.4rem;
+        }
+        .exp-co {
+            font-size:0.78rem; color:var(--text-dim); line-height:1.5;
+        }
+
+        .exp-right {}
+        .exp-role {
+            font-family:'Cormorant Garamond', serif;
+            font-size:1.45rem; font-weight:400;
+            margin-bottom:1rem; letter-spacing:-0.01em;
+        }
+        .exp-bullets { list-style:none; display:flex; flex-direction:column; gap:0.45rem; }
+        .exp-bullets li {
+            font-size:0.84rem; color:var(--text-mid); line-height:1.7;
+            padding-left:1.2rem; position:relative;
+        }
+        .exp-bullets li::before {
+            content:'—';
+            position:absolute; left:0;
+            color:var(--gold); opacity:0.55;
+        }
+
+        /* ── RESUME subpage ── */
+        .resume-section { margin-bottom:3rem; }
+        .resume-section-title {
+            font-family:'DM Mono', monospace;
+            font-size:0.6rem; letter-spacing:0.18em;
+            text-transform:uppercase; color:var(--gold);
+            padding-bottom:0.8rem;
+            border-bottom:1px solid var(--border);
+            margin-bottom:1.5rem;
+        }
+
+        .edu-row {
+            display:flex; justify-content:space-between; align-items:baseline;
+            margin-bottom:0.3rem;
+        }
+        .edu-deg {
+            font-family:'Cormorant Garamond', serif;
+            font-size:1.2rem; font-weight:400;
+        }
+        .edu-yr {
+            font-family:'DM Mono', monospace;
+            font-size:0.6rem; color:var(--text-dim); letter-spacing:0.1em;
+        }
+        .edu-school { font-size:0.82rem; color:var(--text-dim); margin-bottom:1.2rem; }
+
+        .cert-chips {
+            display:flex; flex-wrap:wrap; gap:0.6rem;
+        }
+        .cert-chip {
+            padding:0.5rem 1rem;
+            border:1px solid var(--border); background:var(--card);
+            font-family:'DM Mono', monospace;
+            font-size:0.62rem; letter-spacing:0.08em;
+            color:var(--text-mid);
+            border-radius:4px;
+            transition: border-color 0.3s;
+        }
+        .cert-chip:hover { border-color:rgba(201,168,76,0.35); }
+
+        .tech-grid {
+            display:grid; grid-template-columns:repeat(3,1fr); gap:0.6rem;
+        }
+        .tech-item {
+            padding:0.7rem 1rem;
+            border:1px solid var(--border); background:var(--card);
+            font-size:0.8rem; color:var(--text-mid);
+            transition: border-color 0.3s;
+        }
+        .tech-item:hover { border-color:rgba(201,168,76,0.3); }
+
+        /* ── CONTACT subpage ── */
+        .contact-center {
+            text-align:center;
+            max-width:500px;
+            margin:0 auto;
+            padding:4rem 0;
+        }
+        .contact-big {
+            font-family:'Cormorant Garamond', serif;
+            font-size:clamp(2.5rem,6vw,5rem);
+            font-weight:300;
+            line-height:1.05;
+            letter-spacing:-0.02em;
+            margin-bottom:1.5rem;
+        }
+        .contact-big em { font-style:italic; color:var(--gold); }
+        .contact-sub {
+            font-size:0.85rem; color:var(--text-dim); line-height:1.8;
+            margin-bottom:3rem;
+        }
+        .contact-btns {
+            display:flex; flex-direction:column; gap:0.75rem; align-items:center;
+        }
+        .contact-btn {
+            display:flex; align-items:center; gap:0.8rem;
+            width:280px;
+            padding:1rem 1.5rem;
+            border:1px solid var(--border); background:var(--card);
+            color:var(--text-mid); text-decoration:none;
+            font-family:'DM Mono', monospace;
+            font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase;
+            transition: border-color 0.3s, color 0.3s, background 0.3s;
+        }
+        .contact-btn:hover {
+            border-color:var(--gold);
+            color:var(--gold);
+            background:var(--gold-dim);
+        }
+        .contact-btn svg {
+            width:15px; height:15px;
+            stroke:currentColor; fill:none;
+            stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round;
+            flex-shrink:0;
+        }
+
+        /* ══════════════════════════════════════
+           ANIMATIONS
+        ══════════════════════════════════════ */
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(18px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity:0; } to { opacity:1; }
+        }
+        @keyframes cardIn {
+            from { opacity:0; transform:translateY(16px) scale(0.98); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+        @keyframes bounce {
+            0%,100% { transform:translateY(0); }
+            50%     { transform:translateY(5px); }
+        }
+        @keyframes pulse {
+            0%,100% { opacity:1; } 50% { opacity:0.25; }
+        }
+
+        /* subpage slide-in */
+        .subpage { animation: subIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards; }
+        @keyframes subIn {
+            from { opacity:0; transform:translateY(30px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* ══════════════════════════════════════
+           RESPONSIVE
+        ══════════════════════════════════════ */
+        @media(max-width:700px){
+            .cards-grid { grid-template-columns:1fr 1fr; }
+            .stats-row  { grid-template-columns:1fr 1fr; }
+            .skills-cols { grid-template-columns:1fr; }
+            .tech-grid   { grid-template-columns:1fr 1fr; }
+            .exp-entry   { grid-template-columns:1fr; gap:0.8rem; }
+        }
+        @media(max-width:480px){
+            .cards-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ambient light -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- ════════════════════════════════════
+     PAGE 0 · HERO
+════════════════════════════════════ -->
+<section class="page active" id="page-home">
+    <div class="hero-content">
+        <div class="hero-hi">Finance &amp; Strategy · Toronto, ON</div>
+        <h1 class="hero-name">Hi, I'm<br><em>BARRY</em></h1>
+        <div class="hero-role">CFA Candidate · Bilingual EN / ZH</div>
+    </div>
+
+    <div class="scroll-cue" onclick="goHub()">
+        <div class="scroll-cue-line"></div>
+        <div class="scroll-cue-arrow">↓</div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════
+     PAGE 1 · HUB (cards + footer)
+════════════════════════════════════ -->
+<section class="page" id="page-hub">
+
+    <!-- top bar -->
+    <div class="hub-header">
+        <div class="hub-wordmark" onclick="goHome()">Barry <em>Li</em></div>
+        <div class="hub-location">Toronto · ON · Canada</div>
+    </div>
+
+    <!-- navigation cards -->
+    <div class="cards-grid">
+
+        <div class="card-nav" onclick="openSub('sub-about')">
+            <span class="card-num">01</span>
+            <span class="card-title">About Me</span>
+            <span class="card-desc">Profile &amp; skills</span>
+            <span class="card-arrow">↗</span>
+        </div>
+
+        <div class="card-nav" onclick="openSub('sub-exp')">
+            <span class="card-num">02</span>
+            <span class="card-title">Experience</span>
+            <span class="card-desc">Career history</span>
+            <span class="card-arrow">↗</span>
+        </div>
+
+        <div class="card-nav" onclick="openSub('sub-resume')">
+            <span class="card-num">03</span>
+            <span class="card-title">Resume</span>
+            <span class="card-desc">Education &amp; credentials</span>
+            <span class="card-arrow">↗</span>
+        </div>
+
+        <div class="card-nav" onclick="openSub('sub-projects')">
+            <span class="card-num">04</span>
+            <span class="card-title">Projects</span>
+            <span class="card-desc">Data &amp; analytics work</span>
+            <span class="card-arrow">↗</span>
+        </div>
+
+        <div class="card-nav" onclick="openSub('sub-contact')">
+            <span class="card-num">05</span>
+            <span class="card-title">Contact</span>
+            <span class="card-desc">Let's connect</span>
+            <span class="card-arrow">↗</span>
+        </div>
+
+    </div>
+
+    <!-- footer -->
+    <div class="hub-footer">
+        <div class="footer-status">
+            <span class="status-dot"></span>
+            Open to opportunities
+        </div>
+        <div class="social-links">
+            <a href="https://github.com/Barri-li" target="_blank" class="icon-link" aria-label="GitHub">
+                <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            </a>
+            <a href="https://linkedin.com/in/barry-li-960751192" target="_blank" class="icon-link" aria-label="LinkedIn">
+                <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+            </a>
+            <a href="mailto:zhihaoli99@outlook.com" class="icon-link" aria-label="Email">
+                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </a>
+        </div>
+    </div>
+
+</section>
+
+<!-- ════════════════════════════════════
+     SUBPAGE · ABOUT ME
+════════════════════════════════════ -->
+<div class="subpage" id="sub-about">
+    <nav class="sub-nav">
+        <button class="sub-nav-back" onclick="closeSub('sub-about')">← Back</button>
+        <span class="sub-nav-title">01 · About Me</span>
+    </nav>
+    <div class="sub-body">
+        <div class="sub-eyebrow">Profile</div>
+        <h2 class="sub-headline">Data-driven decisions<br>that <em>move business</em><br>forward.</h2>
+
+        <p class="about-intro">
+            Finance &amp; strategy professional with 3+ years of progressive experience in data-driven analysis, operational consulting, and market intelligence. I specialize in translating complex datasets into executive-level decisions and ROI-accretive recommendations.<br><br>
+            Currently at MetaHash Technology, I lead market analysis and external PR coordination for an AI-driven fashion platform ahead of a Pre-A raise targeting $30M+ USD valuation. My rare technical stack spanning Python, SQL, Bloomberg Terminal, Power BI, and R — combined with bilingual EN/ZH capabilities — opens doors across Toronto's finance and consulting landscape.
+        </p>
+
+        <div class="stats-row">
+            <div class="stat-box"><div class="stat-n">60%</div><div class="stat-l">Workload reduced</div></div>
+            <div class="stat-box"><div class="stat-n">40%</div><div class="stat-l">Reporting time cut</div></div>
+            <div class="stat-box"><div class="stat-n">3+</div><div class="stat-l">Years experience</div></div>
+            <div class="stat-box"><div class="stat-n">25%</div><div class="stat-l">CTR improvement</div></div>
+        </div>
+
+        <div class="sub-eyebrow">Technical Skills</div>
+        <div class="skills-cols">
+            <div class="skill-row"><span>Bloomberg Terminal</span><span class="skill-tag">Financial</span></div>
+            <div class="skill-row"><span>Excel · Advanced VBA</span><span class="skill-tag">Financial</span></div>
+            <div class="skill-row"><span>Python</span><span class="skill-tag">Analytics</span></div>
+            <div class="skill-row"><span>SQL · MySQL · PostgreSQL</span><span class="skill-tag">Analytics</span></div>
+            <div class="skill-row"><span>Power BI · Tableau</span><span class="skill-tag">Visualization</span></div>
+            <div class="skill-row"><span>RStudio</span><span class="skill-tag">Econometrics</span></div>
+            <div class="skill-row"><span>Financial Modeling (DCF, LBO)</span><span class="skill-tag">In Progress</span></div>
+            <div class="skill-row"><span>Mandarin Chinese</span><span class="skill-tag">Native</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SUBPAGE · EXPERIENCE
+════════════════════════════════════ -->
+<div class="subpage" id="sub-exp">
+    <nav class="sub-nav">
+        <button class="sub-nav-back" onclick="closeSub('sub-exp')">← Back</button>
+        <span class="sub-nav-title">02 · Experience</span>
+    </nav>
+    <div class="sub-body">
+        <div class="sub-eyebrow">Career History</div>
+        <h2 class="sub-headline">3+ years of<br><em>progressive</em> impact.</h2>
+
+        <div class="exp-entry">
+            <div class="exp-left">
+                <div class="exp-period">Aug 2025 — Present</div>
+                <div class="exp-co">MetaHash Technology<br>Alvin's Club Product<br>Toronto, ON</div>
+            </div>
+            <div class="exp-right">
+                <div class="exp-role">Market Analyst</div>
+                <ul class="exp-bullets">
+                    <li>Primary liaison between company and external PR firms, coordinating a 3–4 month retainer campaign targeting TechCrunch, Forbes, and Business of Fashion ahead of a Pre-A funding round (May 2026).</li>
+                    <li>Competitive landscape analysis across AI fashion sector; intelligence briefings shaped pivot to AI-driven retail targeting $30M+ USD valuation.</li>
+                    <li>Automated ERP sales data pipelines using Python and SQL — reduced manual reporting time by 40%, enabled real-time SKU-level performance monitoring.</li>
+                    <li>Developed A/B testing frameworks for 3+ product release cycles; built cross-platform dashboards delivering weekly ROI insights to C-suite.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="exp-entry">
+            <div class="exp-left">
+                <div class="exp-period">Mar 2024 — Jan 2025</div>
+                <div class="exp-co">VS Consulting Group<br>Toronto, ON</div>
+            </div>
+            <div class="exp-right">
+                <div class="exp-role">Data Consultant</div>
+                <ul class="exp-bullets">
+                    <li>Redesigned Management Scorecard Dashboard, consolidating 6+ data sources for executive decision-making across customer acquisition, booking trends, and sentiment tracking.</li>
+                    <li>Engineered SQL-based automated reporting: +20% data accuracy, −60% manual workload across monthly cycles.</li>
+                    <li>Built customer segmentation models — 10–25% CTR improvement, 10–20% uplift in campaign ROI.</li>
+                    <li>Automated Excel templates reducing report preparation time by 50%.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="exp-entry">
+            <div class="exp-left">
+                <div class="exp-period">Jan 2023 — Jul 2023</div>
+                <div class="exp-co">JASPER Immigration Service Inc.<br>Montreal, QC (Remote)</div>
+            </div>
+            <div class="exp-right">
+                <div class="exp-role">Operational Data Analyst</div>
+                <ul class="exp-bullets">
+                    <li>Managed end-to-end workflows for investor performance analysis and financial transaction reconciliation — 100% compliance with government and legal reporting standards.</li>
+                    <li>Collaborated with Legal and Government teams to streamline compliance tracking and reduce cross-functional bottlenecks.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="exp-entry">
+            <div class="exp-left">
+                <div class="exp-period">Mar 2021 — Jun 2022</div>
+                <div class="exp-co">Tianjin Haosheng Ocean Logistics<br>Tianjin, China</div>
+            </div>
+            <div class="exp-right">
+                <div class="exp-role">Associate Operational Analyst</div>
+                <ul class="exp-bullets">
+                    <li>Financial reconciliation and document processing for logistics operations — shipment tracking, invoice management, expense reporting.</li>
+                    <li>Monitored cargo shipments and resolved client-vendor disputes; structured problem-solving skills transferable to deal execution environments.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SUBPAGE · RESUME
+════════════════════════════════════ -->
+<div class="subpage" id="sub-resume">
+    <nav class="sub-nav">
+        <button class="sub-nav-back" onclick="closeSub('sub-resume')">← Back</button>
+        <span class="sub-nav-title">03 · Resume</span>
+    </nav>
+    <div class="sub-body">
+        <div class="sub-eyebrow">Credentials</div>
+        <h2 class="sub-headline">Education,<br>certifications &amp; <em>skills.</em></h2>
+
+        <!-- Education -->
+        <div class="resume-section">
+            <div class="resume-section-title">Education</div>
+            <div class="edu-row">
+                <div class="edu-deg">Master of Applied Economics &amp; Policy</div>
+                <div class="edu-yr">2022 — 2024</div>
+            </div>
+            <div class="edu-school">University of Windsor &nbsp;·&nbsp; GPA 77.31 / 100</div>
+
+            <div class="edu-row">
+                <div class="edu-deg">BBA — International Business</div>
+                <div class="edu-yr">2018 — 2022</div>
+            </div>
+            <div class="edu-school">Tianjin Foreign Studies University</div>
+        </div>
+
+        <!-- Certifications -->
+        <div class="resume-section">
+            <div class="resume-section-title">Certifications</div>
+            <div class="cert-chips">
+                <div class="cert-chip">CFA Level I Candidate — Aug 2025 ★</div>
+                <div class="cert-chip">Bloomberg Market Concepts</div>
+                <div class="cert-chip">Bloomberg ESG Certification</div>
+                <div class="cert-chip">ACCA Diploma · RQF Level 4</div>
+                <div class="cert-chip">Excel — Data Analytics &amp; Visualization</div>
+                <div class="cert-chip">SQL Intermediate — HackerRank</div>
+            </div>
+        </div>
+
+        <!-- Tech -->
+        <div class="resume-section">
+            <div class="resume-section-title">Technical Stack</div>
+            <div class="tech-grid">
+                <div class="tech-item">Bloomberg Terminal</div>
+                <div class="tech-item">Excel · Advanced VBA</div>
+                <div class="tech-item">Financial Modeling</div>
+                <div class="tech-item">Python</div>
+                <div class="tech-item">SQL · MySQL · PostgreSQL</div>
+                <div class="tech-item">Power BI · Tableau</div>
+                <div class="tech-item">RStudio</div>
+                <div class="tech-item">English — Professional</div>
+                <div class="tech-item">Mandarin Chinese — Native</div>
+            </div>
+        </div>
+
+        <!-- Target -->
+        <div class="resume-section">
+            <div class="resume-section-title">Target Roles</div>
+            <div class="cert-chips">
+                <div class="cert-chip">Transaction Services — Big 4</div>
+                <div class="cert-chip">Valuations Analyst — Boutique</div>
+                <div class="cert-chip">ESG Advisory Analyst</div>
+                <div class="cert-chip">Strategy / BA Consultant</div>
+                <div class="cert-chip">Corporate Development Analyst</div>
+                <div class="cert-chip">FP&amp;A Analyst</div>
+                <div class="cert-chip">Boutique IB Junior Analyst</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SUBPAGE · PROJECTS
+════════════════════════════════════ -->
+<div class="subpage" id="sub-projects">
+    <nav class="sub-nav">
+        <button class="sub-nav-back" onclick="closeSub('sub-projects')">← Back</button>
+        <span class="sub-nav-title">04 · Projects</span>
+    </nav>
+    <div class="sub-body">
+        <div class="sub-eyebrow">Selected Work</div>
+        <h2 class="sub-headline">Analytics &amp;<br><em>data</em> projects.</h2>
+
+        <!-- project cards -->
+        <div style="display:flex; flex-direction:column; gap:1px; border:1px solid var(--border);">
+
+            <div style="padding:2rem; background:var(--card);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                    <div>
+                        <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:400; margin-bottom:0.3rem;">ERP Sales Data Pipeline Automation</div>
+                        <div style="font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold);">MetaHash Technology · 2025</div>
+                    </div>
+                    <div style="font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--text-dim); letter-spacing:0.1em;">Python · SQL</div>
+                </div>
+                <p style="font-size:0.84rem; color:var(--text-mid); line-height:1.75;">Automated ERP sales data pipelines replacing manual exports with real-time SKU-level monitoring. Reduced manual reporting time by 40% and enabled pricing and product decisions to be data-driven at a weekly cadence for C-suite stakeholders.</p>
+            </div>
+
+            <div style="padding:2rem; background:var(--card);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                    <div>
+                        <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:400; margin-bottom:0.3rem;">Management Scorecard Dashboard</div>
+                        <div style="font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold);">VS Consulting Group · 2024</div>
+                    </div>
+                    <div style="font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--text-dim); letter-spacing:0.1em;">SQL · Power BI</div>
+                </div>
+                <p style="font-size:0.84rem; color:var(--text-mid); line-height:1.75;">Redesigned executive dashboard consolidating 6+ data sources — customer acquisition metrics, booking trends, and online sentiment — into a single real-time view. Improved data accuracy by 20% and cut manual workload by 60%.</p>
+            </div>
+
+            <div style="padding:2rem; background:var(--card);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                    <div>
+                        <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:400; margin-bottom:0.3rem;">Customer Segmentation Model</div>
+                        <div style="font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold);">VS Consulting Group · 2024</div>
+                    </div>
+                    <div style="font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--text-dim); letter-spacing:0.1em;">SQL · Python</div>
+                </div>
+                <p style="font-size:0.84rem; color:var(--text-mid); line-height:1.75;">Built behavioral and demographic segmentation model in SQL to optimize marketing targeting. Contributed to a 10–25% improvement in campaign click-through rates and 10–20% uplift in ROI across subsequent campaigns.</p>
+            </div>
+
+            <div style="padding:2rem; background:var(--card);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                    <div>
+                        <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:400; margin-bottom:0.3rem;">AI Fashion Sector Competitive Intelligence</div>
+                        <div style="font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold);">MetaHash Technology · 2025–Present</div>
+                    </div>
+                    <div style="font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--text-dim); letter-spacing:0.1em;">Market Research</div>
+                </div>
+                <p style="font-size:0.84rem; color:var(--text-mid); line-height:1.75;">Ongoing competitive landscape analysis across the AI fashion sector. Produced actionable intelligence briefings that informed the company's strategic pivot from traditional e-commerce to AI-driven retail, targeting a $30M+ USD valuation milestone ahead of a Pre-A funding round.</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SUBPAGE · CONTACT
+════════════════════════════════════ -->
+<div class="subpage" id="sub-contact">
+    <nav class="sub-nav">
+        <button class="sub-nav-back" onclick="closeSub('sub-contact')">← Back</button>
+        <span class="sub-nav-title">05 · Contact</span>
+    </nav>
+    <div class="sub-body">
+        <div class="contact-center">
+            <div class="sub-eyebrow" style="justify-content:center;">Get in touch</div>
+            <h2 class="contact-big">Let's <em>connect</em><br>and talk.</h2>
+            <p class="contact-sub">Open to opportunities in Investment Banking, Transaction Advisory, and Management Consulting. Always happy to connect over a coffee chat.</p>
+            <div class="contact-btns">
+                <a href="mailto:zhihaoli99@outlook.com" class="contact-btn">
+                    <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    zhihaoli99@outlook.com
+                </a>
+                <a href="https://linkedin.com/in/barry-li-960751192" target="_blank" class="contact-btn">
+                    <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                    LinkedIn — Barry Li
+                </a>
+                <a href="https://github.com/Barri-li" target="_blank" class="contact-btn">
+                    <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+                    GitHub — Barri-li
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════ -->
+<script>
+    // ── Page transitions ──
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const el = document.getElementById(id);
+        if (el) el.classList.add('active');
+    }
+
+    function goHub() {
+        showPage('page-hub');
+        // re-trigger card animations
+        document.querySelectorAll('.card-nav').forEach((c,i) => {
+            c.style.animation = 'none';
+            c.offsetHeight; // reflow
+            c.style.animation = `cardIn 0.55s ease ${0.1 + i * 0.1}s forwards`;
+        });
+    }
+
+    function goHome() {
+        showPage('page-home');
+    }
+
+    // ── Subpage open/close ──
+    function openSub(id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.style.animation = 'none';
+            el.offsetHeight;
+            el.style.animation = 'subIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards';
+            el.classList.add('open');
+            el.scrollTop = 0;
+        }
+    }
+    function closeSub(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('open');
+    }
+
+    // ── Keyboard: Escape closes subpage ──
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.subpage.open').forEach(s => s.classList.remove('open'));
+        }
+    });
+
+    // ── Scroll: wheel/touch from hero → hub ──
+    let lastWheel = 0;
+    window.addEventListener('wheel', e => {
+        const now = Date.now();
+        if (now - lastWheel < 600) return;
+        lastWheel = now;
+        const home = document.getElementById('page-home');
+        if (home.classList.contains('active') && e.deltaY > 30) goHub();
+    }, { passive: true });
+
+    // touch swipe up
+    let touchY = 0;
+    window.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
+    window.addEventListener('touchend', e => {
+        const dy = touchY - e.changedTouches[0].clientY;
+        const home = document.getElementById('page-home');
+        if (home.classList.contains('active') && dy > 60) goHub();
+    }, { passive: true });
+</script>
+
+</body>
+</html>
