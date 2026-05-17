@@ -8,9 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
     <style>
-        /* ══════════════════════════════════════
-           TOKENS
-        ══════════════════════════════════════ */
+        /* ═══════════ TOKENS ═══════════ */
         :root {
             --bg:           #080807;
             --bg2:          #0f0f0d;
@@ -25,9 +23,7 @@
             --gold-dim:     rgba(201,168,76,0.09);
         }
 
-        /* ══════════════════════════════════════
-           RESET & BASE
-        ══════════════════════════════════════ */
+        /* ═══════════ RESET & BASE ═══════════ */
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 
@@ -47,6 +43,8 @@
             pointer-events:none; z-index:9999;
         }
 
+        /* ═══════════ LAYOUT ═══════════ */
+
         /* ambient orbs */
         .orb {
             position:fixed; border-radius:50%;
@@ -63,9 +61,7 @@
             bottom:-100px; right:-100px;
         }
 
-        /* ══════════════════════════════════════
-           PAGE SYSTEM — each .page is full-height
-        ══════════════════════════════════════ */
+        /* page system */
         .page {
             min-height: 100vh;
             position: relative;
@@ -74,15 +70,33 @@
         }
         .page.active { display: flex; flex-direction: column; }
 
-        /* ══════════════════════════════════════
-           PAGE 0 — HERO
-        ══════════════════════════════════════ */
         #page-home {
             scroll-snap-align: start;
             justify-content: center;
             align-items: center;
         }
 
+        #page-hub {
+            flex-direction: column;
+            justify-content: space-between;
+            padding: clamp(2rem,4vh,3rem) clamp(1.5rem,5vw,4rem);
+        }
+
+        /* subpage overlay */
+        .subpage {
+            position:fixed; inset:0;
+            background: var(--bg);
+            z-index:100;
+            overflow-y:auto;
+            display:none;
+            flex-direction:column;
+            animation: subIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+        .subpage.open { display:flex; }
+
+        /* ═══════════ COMPONENTS ═══════════ */
+
+        /* — Hero — */
         .hero-content {
             display: flex;
             flex-direction: column;
@@ -163,16 +177,7 @@
             color: var(--gold);
         }
 
-        /* ══════════════════════════════════════
-           PAGE 1 — CARD NAV HUB
-        ══════════════════════════════════════ */
-        #page-hub {
-            flex-direction: column;
-            justify-content: space-between;
-            padding: clamp(2rem,4vh,3rem) clamp(1.5rem,5vw,4rem);
-        }
-
-        /* hub header */
+        /* — Hub Header — */
         .hub-header {
             display: flex;
             justify-content: space-between;
@@ -199,7 +204,7 @@
             color: var(--text-dim);
         }
 
-        /* cards grid */
+        /* — Nav Cards — */
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -208,7 +213,6 @@
             margin: clamp(1.5rem,3vh,2.5rem) 0;
         }
 
-        /* special layout: first card spans 2 rows height visually if desired */
         .card-nav {
             position: relative;
             background: var(--card);
@@ -297,7 +301,7 @@
         }
         .card-nav:hover .card-arrow { opacity:1; transform:translate(0,0); }
 
-        /* hub footer */
+        /* — Hub Footer — */
         .hub-footer {
             display: flex;
             justify-content: space-between;
@@ -339,20 +343,7 @@
             stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round;
         }
 
-        /* ══════════════════════════════════════
-           SUBPAGES — modal-style overlay
-        ══════════════════════════════════════ */
-        .subpage {
-            position:fixed; inset:0;
-            background: var(--bg);
-            z-index:100;
-            overflow-y:auto;
-            display:none;
-            flex-direction:column;
-        }
-        .subpage.open { display:flex; }
-
-        /* subpage nav bar */
+        /* — Subpage Shell — */
         .sub-nav {
             position:sticky; top:0;
             background: rgba(8,8,7,0.9);
@@ -382,7 +373,6 @@
             color: var(--text-dim);
         }
 
-        /* subpage body */
         .sub-body {
             padding: clamp(3rem,6vh,5rem) clamp(1.5rem,5vw,4rem);
             max-width:900px;
@@ -390,7 +380,6 @@
             width:100%;
         }
 
-        /* subpage section heading */
         .sub-eyebrow {
             font-family:'DM Mono', monospace;
             font-size:0.62rem;
@@ -408,15 +397,21 @@
 
         .sub-headline {
             font-family:'Cormorant Garamond', serif;
-            font-size: clamp(2.2rem,5vw,4rem);
+            font-size: clamp(3rem, 8vw, 6.5rem);
             font-weight:300;
-            line-height:1.05;
-            letter-spacing:-0.01em;
+            line-height:0.95;
+            letter-spacing:-0.02em;
             margin-bottom:3rem;
+            opacity: 0;
+            animation: fadeUp 0.3s ease-out 0.1s forwards;
         }
-        .sub-headline em { font-style:italic; color:var(--gold); }
+        .sub-headline em {
+            font-style:italic;
+            color:var(--gold);
+            text-shadow: 0 0 40px rgba(201,168,76,0.3);
+        }
 
-        /* ── ABOUT subpage ── */
+        /* — About — */
         .about-intro {
             font-size:1rem;
             color: var(--text-mid);
@@ -469,7 +464,7 @@
             color:var(--gold);
         }
 
-        /* ── EXPERIENCE subpage ── */
+        /* — Experience — */
         .exp-entry {
             display:grid;
             grid-template-columns:190px 1fr;
@@ -506,7 +501,7 @@
             color:var(--gold); opacity:0.55;
         }
 
-        /* ── RESUME subpage ── */
+        /* — Resume — */
         .resume-section { margin-bottom:3rem; }
         .resume-section-title {
             font-family:'DM Mono', monospace;
@@ -556,7 +551,7 @@
         }
         .tech-item:hover { border-color:rgba(201,168,76,0.3); }
 
-        /* ── CONTACT subpage ── */
+        /* — Contact — */
         .contact-center {
             text-align:center;
             max-width:500px;
@@ -601,9 +596,7 @@
             flex-shrink:0;
         }
 
-        /* ══════════════════════════════════════
-           ANIMATIONS
-        ══════════════════════════════════════ */
+        /* ═══════════ ANIMATIONS ═══════════ */
         @keyframes fadeUp {
             from { opacity:0; transform:translateY(18px); }
             to   { opacity:1; transform:translateY(0); }
@@ -622,17 +615,12 @@
         @keyframes pulse {
             0%,100% { opacity:1; } 50% { opacity:0.25; }
         }
-
-        /* subpage slide-in */
-        .subpage { animation: subIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards; }
         @keyframes subIn {
             from { opacity:0; transform:translateY(30px); }
             to   { opacity:1; transform:translateY(0); }
         }
 
-        /* ══════════════════════════════════════
-           RESPONSIVE
-        ══════════════════════════════════════ */
+        /* ═══════════ RESPONSIVE ═══════════ */
         @media(max-width:700px){
             .cards-grid { grid-template-columns:1fr 1fr; }
             .stats-row  { grid-template-columns:1fr 1fr; }
@@ -651,9 +639,7 @@
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
 
-<!-- ════════════════════════════════════
-     PAGE 0 · HERO
-════════════════════════════════════ -->
+<!-- ═══════════ HERO ═══════════ -->
 <section class="page active" id="page-home">
     <div class="hero-content">
         <div class="hero-hi">Finance &amp; Strategy · Toronto, ON</div>
@@ -667,9 +653,7 @@
     </div>
 </section>
 
-<!-- ════════════════════════════════════
-     PAGE 1 · HUB (cards + footer)
-════════════════════════════════════ -->
+<!-- ═══════════ HUB ═══════════ -->
 <section class="page" id="page-hub">
 
     <!-- top bar -->
@@ -739,9 +723,7 @@
 
 </section>
 
-<!-- ════════════════════════════════════
-     SUBPAGE · ABOUT ME
-════════════════════════════════════ -->
+<!-- ═══════════ SUBPAGE · ABOUT ═══════════ -->
 <div class="subpage" id="sub-about">
     <nav class="sub-nav">
         <button class="sub-nav-back" onclick="closeSub('sub-about')">← Back</button>
@@ -777,9 +759,7 @@
     </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SUBPAGE · EXPERIENCE
-════════════════════════════════════ -->
+<!-- ═══════════ SUBPAGE · EXPERIENCE ═══════════ -->
 <div class="subpage" id="sub-exp">
     <nav class="sub-nav">
         <button class="sub-nav-back" onclick="closeSub('sub-exp')">← Back</button>
@@ -851,9 +831,7 @@
     </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SUBPAGE · RESUME
-════════════════════════════════════ -->
+<!-- ═══════════ SUBPAGE · RESUME ═══════════ -->
 <div class="subpage" id="sub-resume">
     <nav class="sub-nav">
         <button class="sub-nav-back" onclick="closeSub('sub-resume')">← Back</button>
@@ -924,9 +902,7 @@
     </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SUBPAGE · PROJECTS
-════════════════════════════════════ -->
+<!-- ═══════════ SUBPAGE · PROJECTS ═══════════ -->
 <div class="subpage" id="sub-projects">
     <nav class="sub-nav">
         <button class="sub-nav-back" onclick="closeSub('sub-projects')">← Back</button>
@@ -987,9 +963,7 @@
     </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SUBPAGE · CONTACT
-════════════════════════════════════ -->
+<!-- ═══════════ SUBPAGE · CONTACT ═══════════ -->
 <div class="subpage" id="sub-contact">
     <nav class="sub-nav">
         <button class="sub-nav-back" onclick="closeSub('sub-contact')">← Back</button>
@@ -1018,11 +992,13 @@
     </div>
 </div>
 
-<!-- ════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════ -->
+<!-- ═══════════ JAVASCRIPT ═══════════ -->
 <script>
-    // ── Page transitions ──
+    /* ═══════════ STATE ═══════════ */
+    let lastWheel = 0;
+    let touchY = 0;
+
+    /* ═══════════ NAVIGATION ═══════════ */
     function showPage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         const el = document.getElementById(id);
@@ -1043,7 +1019,6 @@
         showPage('page-home');
     }
 
-    // ── Subpage open/close ──
     function openSub(id) {
         const el = document.getElementById(id);
         if (el) {
@@ -1059,15 +1034,13 @@
         if (el) el.classList.remove('open');
     }
 
-    // ── Keyboard: Escape closes subpage ──
+    /* ═══════════ EVENT LISTENERS ═══════════ */
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
             document.querySelectorAll('.subpage.open').forEach(s => s.classList.remove('open'));
         }
     });
 
-    // ── Scroll: wheel/touch from hero → hub ──
-    let lastWheel = 0;
     window.addEventListener('wheel', e => {
         const now = Date.now();
         if (now - lastWheel < 600) return;
@@ -1076,8 +1049,6 @@
         if (home.classList.contains('active') && e.deltaY > 30) goHub();
     }, { passive: true });
 
-    // touch swipe up
-    let touchY = 0;
     window.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
     window.addEventListener('touchend', e => {
         const dy = touchY - e.changedTouches[0].clientY;
