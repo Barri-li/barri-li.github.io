@@ -142,6 +142,41 @@
             animation: fadeUp 0.7s ease 0.8s forwards;
         }
 
+        /* — Marquee Strip — */
+        .marquee-strip {
+            align-self: stretch;
+            overflow: hidden;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            margin-top: 2.5rem;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 1.0s forwards;
+        }
+        .marquee-strip:hover .marquee-track { animation-play-state: paused; }
+        .marquee-track {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            width: max-content;
+            animation: marqueeScroll 35s linear infinite;
+            will-change: transform;
+        }
+        .marquee-item {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            flex-shrink: 0;
+        }
+        .marquee-sep {
+            color: var(--gold);
+            margin: 0 1.5rem;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
         /* scroll cue */
         .scroll-cue {
             position: absolute;
@@ -619,6 +654,10 @@
             from { opacity:0; transform:translateY(30px); }
             to   { opacity:1; transform:translateY(0); }
         }
+        @keyframes marqueeScroll {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
 
         /* ═══════════ RESPONSIVE ═══════════ */
         @media(max-width:700px){
@@ -627,6 +666,9 @@
             .skills-cols { grid-template-columns:1fr; }
             .tech-grid   { grid-template-columns:1fr 1fr; }
             .exp-entry   { grid-template-columns:1fr; gap:0.8rem; }
+            .marquee-item,
+            .marquee-sep { font-size: 0.6rem; }
+            .marquee-track { animation-duration: 25s; }
         }
         @media(max-width:480px){
             .cards-grid { grid-template-columns:1fr; }
@@ -645,6 +687,12 @@
         <div class="hero-hi">Finance &amp; Strategy · Toronto, ON</div>
         <h1 class="hero-name">Hi, I'm<br><em>BARRY</em></h1>
         <div class="hero-role">CFA Candidate · Bilingual EN / ZH</div>
+    </div>
+
+    <div class="marquee-strip">
+        <div class="marquee-track">
+            <span class="marquee-item">FINANCE · STRATEGY · VALUATION</span><span class="marquee-sep">●</span><span class="marquee-item">MA APPLIED ECONOMICS</span><span class="marquee-sep">●</span><span class="marquee-item">CFA PROGRAM</span><span class="marquee-sep">●</span><span class="marquee-item">TORONTO · BILINGUAL EN / ZH</span><span class="marquee-sep">●</span><span class="marquee-item">FINANCE · STRATEGY · VALUATION</span><span class="marquee-sep">●</span><span class="marquee-item">MA APPLIED ECONOMICS</span><span class="marquee-sep">●</span><span class="marquee-item">CFA PROGRAM</span><span class="marquee-sep">●</span><span class="marquee-item">TORONTO · BILINGUAL EN / ZH</span><span class="marquee-sep">●</span>
+        </div>
     </div>
 
     <div class="scroll-cue" onclick="goHub()">
